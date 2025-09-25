@@ -1,49 +1,26 @@
-from db.database import get_connection
+from sqlmodel import select
+from models.models import Participation
+from db.database import get_session
 
-
-def add_participant(student_name, olympiad_id):
-    conn = get_connection()
-    cursor = conn.cursor()
+def get_participants_by_olympiad(olympiad_id: int):
     try:
-        cursor.execute("""
-            INSERT INTO participations (student_name, olympiad_id)
-            VALUES (?, ?)
-        """, (student_name, olympiad_id))
-        conn.commit()
-        print(f"Участник '{student_name}' добавлен.")
+        with get_session() as session:
+            statement = select(Participation).where(Participation.olympiad_id == olympiad_id)
+            participants = session.exec(statement).all()
+            return participants
     except Exception as e:
         print(f"Ошибка: {e}")
-    finally:
-        conn.close()
+        return []
 
-
-def get_participants_by_olympiad(olympiad_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, student_name FROM participations WHERE olympiad_id = ?
-    """, (olympiad_id,))
-    rows = cursor.fetchall()
-    conn.close()
-    return rows
-
-def delete_participant(participant_id):
-    """
-    Удаляет участника по ID.
-    :param participant_id: ID записи в таблице participations
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
+def add_participant(student_name: str, olympiad_id: int):
     try:
-        cursor.execute("DELETE FROM participations WHERE id = ?", (participant_id,))
-        
-        if cursor.rowcount == 0:
-            print("Участник с таким ID не найден.")
-        else:
-            conn.commit()
-            print("Участник успешно удалён.")
-            
+        with get_session() as session:
+            participation = Participation(student_name=student_name, olympiad_id=olympiad_id)
+            session.add(participation)
+            session.commit()
+            session.refresh(participation)
+            print(f"Участник '{student_name}' добавлен.")
+            return True
     except Exception as e:
-        print(f"Ошибка при удалении: {e}")
-    finally:
-        conn.close()
+        print(f"Ошибка: {e}")
+        return False
