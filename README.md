@@ -7,6 +7,7 @@ pip install -r requirements.txt
 python main.py
 python main.py --option value
 ## Вход в роли
-Логин: admin Пароль: admin
-Логин: teacher Пароль: admin
-Логин: student Пароль: admin"# olympiads" 
+Логин: admin
+Логин: teacher
+Логин: student
+Пароль от всех стандартных ролей: admin
